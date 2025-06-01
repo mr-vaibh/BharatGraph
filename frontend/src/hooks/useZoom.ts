@@ -1,6 +1,8 @@
 import * as d3 from 'd3'
 import { useEffect } from 'react'
 
+import type { Dimensions } from '@/types/global'
+
 export function useZoom(svgRef: React.RefObject<SVGSVGElement | null>, gRef: React.RefObject<SVGGElement | null>, rootData: any, dimensions: Dimensions | null) {
     useEffect(() => {
         if (!svgRef.current || !gRef.current || !rootData || !dimensions) return
