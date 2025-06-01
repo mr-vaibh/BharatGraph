@@ -1,5 +1,5 @@
-# File: .github/workflows/publish.yml
 name: publish-to-github-pages
+
 on:
   push:
     branches:
@@ -23,10 +23,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node.js ⚙️ - Cache dependencies ⚡ - Install dependencies 🔧
-        uses: ./.github/workflows/setup-node  # this assumes setup-node is unchanged
-
-      - name: Change to frontend directory 📁
-        run: cd frontend
+        uses: ./.github/workflows/setup-node
 
       - name: Setup Pages ⚙️
         uses: actions/configure-pages@v4
