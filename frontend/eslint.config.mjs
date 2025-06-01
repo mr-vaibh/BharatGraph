@@ -14,3 +14,19 @@ const eslintConfig = [
 ];
 
 export default eslintConfig;
+
+
+/*
+
+Use this to disable the rule for no explicit any types
+
+const eslintConfig = [
+  ...compat.config({
+    extends: ["next/core-web-vitals", "next/typescript"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  }),
+];
+
+*/
