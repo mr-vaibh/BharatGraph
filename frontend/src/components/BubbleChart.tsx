@@ -137,6 +137,7 @@ function SearchInput({
 }>) {
   const [input, setInput] = useState('')
   const [suggestions, setSuggestions] = useState<Fuse.FuseResult<Company>[]>([])
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null) // State to track selected suggestion index
 
   const manualSelectRef = useRef(false)
 
@@ -197,19 +198,48 @@ function SearchInput({
     )
   }
 
+  // Handle key navigation and selection
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSelectedIndex((prevIndex) => (prevIndex === null ? 0 : Math.min(suggestions.length - 1, prevIndex + 1)))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSelectedIndex((prevIndex) => (prevIndex === null ? suggestions.length - 1 : Math.max(0, prevIndex - 1)))
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      if (selectedIndex !== null) {
+        const company = suggestions[selectedIndex].item
+        manualSelectRef.current = true
+        setInput(company.companyname)
+        setSuggestions([])
+        onSearch(company.companyname)
+      }
+    }
+  }
+
+  // Reset selectedIndex when input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value)
+    setSelectedIndex(null) // Reset selected index on input change
+  }
+
   return (
     <div className="relative w-full">
       <Input
         placeholder="Search by name, symbol, or ISIN..."
         value={input}
         className="text-white bg-gray-800 placeholder-gray-400 px-4 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 shadow-md"
-        onChange={e => { setInput(e.target.value) }}
+        onChange={handleInputChange} // Use the new handler here
+        onKeyDown={handleKeyDown} // Listen to key events
       />
       {suggestions.length > 0 && (
-        <div className="absolute top-full mt-1 w-full bg-gray-800 border border-gray-600 rounded-md shadow-lg z-20 max-h-60 overflow-y-auto">
-          {suggestions.map(({ item: company, matches }) => {
+        <div className="absolute top-full mt-1 w-full bg-gray-800 border border-gray-600 rounded-md shadow-lg z-20 max-h-80 overflow-y-auto">
+          {suggestions.map(({ item: company, matches }, index) => {
             const key = company.isin ?? company.nsesymbol ?? company.bsecode ?? company.companyname
             const companyNameMatch = matches?.find(m => m.key === 'companyname')
+
+            // Highlight selected suggestion
+            const isSelected = selectedIndex === index
             return (
               <button
                 key={key}
@@ -228,7 +258,9 @@ function SearchInput({
                     onSearch(company.companyname)
                   }
                 }}
-                className="px-4 py-2 hover:bg-blue-600 cursor-pointer text-sm text-white w-full text-left"
+                className={`px-4 py-2 hover:bg-blue-600 cursor-pointer text-sm text-white w-full text-left ${
+                  isSelected ? 'bg-blue-600' : ''
+                }`} // Highlight selected item
                 tabIndex={0}
               >
                 {highlightMatches(company.companyname, companyNameMatch ? [companyNameMatch] : [])}
