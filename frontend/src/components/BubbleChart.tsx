@@ -2,7 +2,7 @@
 
 import * as d3 from 'd3'
 import Fuse from 'fuse.js'
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { Input } from '@/components/ui/input'
 import { Tooltip, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
 import companyData from '@/data/stock_query.json'
@@ -73,7 +73,12 @@ function useBubbleData(dimensions: Dimensions | null, rawData: Record<string, Co
       .size([width, height])
       .padding(3)(
         d3
-          .hierarchy<{ children: BubbleDatum[] }>({ children: flatData })
+          .hierarchy<BubbleDatum & { children?: BubbleDatum[] }>({
+            name: 'root',
+            value: 0,
+            data: {} as Company,
+            children: flatData
+          })
           .sum(d => d.value)
       )
 
@@ -126,10 +131,10 @@ function useZoom(svgRef: React.RefObject<SVGSVGElement | null>, gRef: React.RefO
 function SearchInput({
   onSearch,
   rawData,
-}: {
+}: Readonly<{
   onSearch: (value: string) => void
   rawData: Record<string, Company>
-}) {
+}>) {
   const [input, setInput] = useState('')
   const [suggestions, setSuggestions] = useState<Fuse.FuseResult<Company>[]>([])
 
@@ -175,10 +180,10 @@ function SearchInput({
   }, [input, fuse, onSearch])
 
   // Highlight matches helper
-  function highlightMatches(text: string, matches: Fuse.Range[] = []) {
+  function highlightMatches(text: string, matches: { indices: [number, number][] }[] = []) {
     const matchedIndexes = new Set<number>()
     matches.forEach(({ indices }) => {
-      indices.forEach(([start, end]) => {
+      indices.forEach(([start, end]: [number, number]) => {
         for (let i = start; i <= end; i++) matchedIndexes.add(i)
       })
     })
@@ -186,7 +191,7 @@ function SearchInput({
     return (
       <>
         {text.split('').map((char, idx) =>
-          matchedIndexes.has(idx) ? <b key={idx}>{char}</b> : char
+          matchedIndexes.has(idx) ? <b key={`${char}-${idx}`}>{char}</b> : char
         )}
       </>
     )
@@ -242,12 +247,12 @@ function BubbleTooltip({
   tooltipPos,
   tooltipDirection,
   tooltipRef,
-}: {
+}: Readonly<{
   hoveredData: BubbleDatum
   tooltipPos: { x: number; y: number }
   tooltipDirection: 'above' | 'below'
   tooltipRef: React.RefObject<HTMLDivElement>
-}) {
+}>) {
   // Position fix logic
   const style = useMemo(() => {
     if (!tooltipRef.current) return {}
@@ -277,7 +282,7 @@ function BubbleTooltip({
       overflow: 'hidden',
       textOverflow: 'ellipsis',
     }
-  }, [tooltipPos, tooltipDirection])
+  }, [tooltipPos, tooltipDirection, tooltipRef])
 
   return (
     <TooltipProvider>
@@ -308,7 +313,7 @@ function BubbleTooltip({
   )
 }
 
-export default function BubbleChart(): JSX.Element {
+export default function BubbleChart() {
   const svgRef = useRef<SVGSVGElement>(null)
   const gRef = useRef<SVGGElement>(null)
 
@@ -320,7 +325,7 @@ export default function BubbleChart(): JSX.Element {
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
   const [tooltipDirection, setTooltipDirection] = useState<'above' | 'below'>('below')
 
-  const tooltipRef = useRef<HTMLDivElement>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>
 
   // Prepare bubble data and layout
   const bubbleData = useBubbleData(dimensions, companyData)
@@ -393,7 +398,7 @@ export default function BubbleChart(): JSX.Element {
       .attr('pointer-events', 'visiblePainted')
 
     // Labels
-    const labels = g
+    g
       .selectAll('text')
       .data(leaves, (d: any) => d.data.name)
       .join('text')
