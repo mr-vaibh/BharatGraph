@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as d3 from 'd3'
 import { useEffect } from 'react'
 
