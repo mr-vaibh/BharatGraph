@@ -14,7 +14,6 @@ export function useZoom(svgRef: React.RefObject<SVGSVGElement | null>, gRef: Rea
 
         const zoom = d3
             .zoom<SVGSVGElement, unknown>()
-            .scaleExtent([0.5, 20])
             .wheelDelta((event: WheelEvent) => -event.deltaY * 0.001)
             .on('zoom', event => {
                 g.attr('transform', event.transform.toString())
