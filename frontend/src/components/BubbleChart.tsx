@@ -4,7 +4,7 @@
 
 import * as d3 from 'd3'
 import { useEffect, useRef, useState } from 'react'
-import companyData from '@/data/stock_query.json'
+import companyData from '@/data/company_data.json'
 
 import SearchInput from '@/components/SearchInput'
 import BubbleTooltip from '@/components/BubbleTooltip'
