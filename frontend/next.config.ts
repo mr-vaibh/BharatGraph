@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // For Github Pages deployment
-  // output: "export",
+  output: "export",
   reactStrictMode: true,
 };
 
