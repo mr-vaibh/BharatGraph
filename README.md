@@ -27,6 +27,24 @@ For years, accessing comprehensive Indian stock market data has been a significa
 - **No Authentication Required**: No subscription charge or authentication required
 - **Multiple Data Formats**: JSON, CSV, and Excel exports
 
+## 📡 Public API
+
+BharatGraph offers a **free public API** to access company data easily without any authentication or subscription.
+
+### API Endpoints
+
+- `GET /api/company`  
+  Returns the complete list of all 4,907 companies.
+
+- `GET /api/company?name=<company_name>`  
+  Search companies by partial or full company name (case-insensitive).
+
+- `GET /api/company?nse=<NSE_symbol>`  
+  Search a company by its NSE ticker symbol.
+
+- `GET /api/company?bse=<BSE_symbol>`  
+  Search a company by its BSE ticker symbol.
+
 ## 🛠️ Tech Stack
 
 - **Frontend Framework**: Next.js 15
