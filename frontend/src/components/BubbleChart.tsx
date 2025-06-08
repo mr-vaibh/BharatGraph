@@ -25,6 +25,7 @@ export default function BubbleChart() {
   const [hoveredData, setHoveredData] = useState<BubbleDatum | null>(null)
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
   const [tooltipDirection, setTooltipDirection] = useState<'above' | 'below'>('below')
+  const [zoomLevel, setZoomLevel] = useState(100)
 
   const tooltipRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>
 
@@ -32,7 +33,7 @@ export default function BubbleChart() {
   const bubbleData = useBubbleData(dimensions, companyData)
 
   // Setup zoom and labels showing
-  useZoom(svgRef, gRef, bubbleData, dimensions)
+  useZoom(svgRef, gRef, bubbleData, dimensions, setZoomLevel)
 
   // Handle search-based zooming
   useEffect(() => {
@@ -70,6 +71,26 @@ export default function BubbleChart() {
         .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale))
     }
   }, [search, bubbleData])
+
+  // Handle reset zoom
+  const handleResetZoom = () => {
+    if (!bubbleData || !svgRef.current) return
+
+    const svg = d3.select(svgRef.current)
+    const zoom: d3.ZoomBehavior<SVGSVGElement, unknown> = (svg.node() as any).__zoomInstance
+    if (!zoom) return
+
+    const { root } = bubbleData
+    const scale = Math.min(window.innerWidth, window.innerHeight) / (root.r * 2)
+    const tx = window.innerWidth / 2 - root.x * scale
+    const ty = window.innerHeight / 2 - root.y * scale
+
+    svg
+      .transition()
+      .duration(600)
+      .ease(d3.easeCubicOut)
+      .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale))
+  }
 
   // Render bubbles and labels
   useEffect(() => {
@@ -146,11 +167,22 @@ export default function BubbleChart() {
 
   return (
     <div className="relative w-full h-screen bg-black text-white overflow-hidden">
-      <div className="absolute z-10 top-4 right-4 w-[300px]">
-        <SearchInput onSearch={setSearch} rawData={companyData} />
+      <div className="absolute z-10 top-4 right-4 flex items-center gap-4">
+        <div className="flex items-center gap-2 bg-gray-800/50 px-3 py-1.5 rounded-md">
+          <span className="text-sm font-medium">{zoomLevel}%</span>
+          <button
+            onClick={handleResetZoom}
+            className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded transition-colors"
+          >
+            Reset
+          </button>
+        </div>
+        <div className="w-[300px]">
+          <SearchInput onSearch={setSearch} rawData={companyData} />
+        </div>
       </div>
 
-      <svg ref={svgRef} className="absolute top-0 left-0 w-full h-full">
+      <svg ref={svgRef} className="absolute top-10 left-0 w-full h-full">
         <g ref={gRef} className="bubbles" />
       </svg>
 

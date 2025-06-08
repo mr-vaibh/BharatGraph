@@ -5,7 +5,13 @@ import { useEffect } from 'react'
 
 import type { Dimensions } from '@/types/global'
 
-export function useZoom(svgRef: React.RefObject<SVGSVGElement | null>, gRef: React.RefObject<SVGGElement | null>, rootData: any, dimensions: Dimensions | null) {
+export function useZoom(
+    svgRef: React.RefObject<SVGSVGElement | null>,
+    gRef: React.RefObject<SVGGElement | null>,
+    rootData: any,
+    dimensions: Dimensions | null,
+    setZoomLevel?: (level: number) => void
+) {
     useEffect(() => {
         if (!svgRef.current || !gRef.current || !rootData || !dimensions) return
 
@@ -17,6 +23,12 @@ export function useZoom(svgRef: React.RefObject<SVGSVGElement | null>, gRef: Rea
             .wheelDelta((event: WheelEvent) => -event.deltaY * 0.001)
             .on('zoom', event => {
                 g.attr('transform', event.transform.toString())
+
+                // Update zoom level percentage
+                if (setZoomLevel) {
+                    const percentage = Math.round(event.transform.k * 100)
+                    setZoomLevel(percentage)
+                }
 
                 // Show/hide labels based on zoom scale
                 g.selectAll('text').each(function (d: any) {
@@ -39,7 +51,7 @@ export function useZoom(svgRef: React.RefObject<SVGSVGElement | null>, gRef: Rea
         const ty = dimensions.height / 2 - rootData.root.y * scale
         svg.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale))
 
-            // Save zoom instance to element for external access
-            ; (svg.node() as any).__zoomInstance = zoom
-    }, [svgRef, gRef, rootData, dimensions])
+        // Save zoom instance to element for external access
+        ; (svg.node() as any).__zoomInstance = zoom
+    }, [svgRef, gRef, rootData, dimensions, setZoomLevel])
 }
